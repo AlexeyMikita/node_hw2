@@ -7,3 +7,4 @@ const importer = new Importer(dirw);
 
 dirw.watch("./data/", 2000);
 importer.startImport();
+//importer.startImportSync();

@@ -1,5 +1,7 @@
 
-const fs = require("fs") ;
+const fs = require("fs");
+const csv = require('csvtojson');
+
 const Dirwatcher = require('./dirwatcher');
 
 module.exports = class Importer {
@@ -10,18 +12,37 @@ module.exports = class Importer {
      startImport() {
          var self = this;
          self.dirwatcher.on("changed", (filePaths) => {
-            // fs.readFile(filePaths, (err, data) => {
-            //     console.log(err,data);
-                
-            // });
-            import(filePaths).then(data => {
-                    console.log("Imported" + data);
+            this.import(filePaths).then(data => {
+                    csv({
+                        noheader:true, 
+                        output:"line"
+                    })
+                    .fromString(data.toString("utf-8"))
+                    .then((e) => {console.log(e)}, (jsonObj) => {
+                        console.log(jsonObj);
+                    });
                 },
                 errorData => {
                     console.log("Error" + errorData);
                 });
         });
      };
+
+     startImportSync() {
+        var self = this;
+        self.dirwatcher.on("changed", (filePaths) => {
+            let fileData = this.importSync(filePaths);
+            csv({
+                noheader:true, 
+                output:"line"
+            })
+            .fromString(fileData)
+            .then(
+                (e) => {console.log(e)}, 
+                (jsonObj) => {console.log(jsonObj);
+            });
+        });
+     }
 
      removeWatcher() {
          this.dirwatcher.stopWatch();
@@ -35,7 +56,7 @@ module.exports = class Importer {
         });
      };
      
-     importSyn(path) {
-
+     importSync(path) {
+        return fs.readFileSync(path, "utf-8");
      };
 };
